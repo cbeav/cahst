@@ -1,0 +1,48 @@
+name:                cahst
+version:             0.1.0.0
+github:              "cbeav/cahst"
+license:             BSD3
+author:              "Chris Beavers"
+maintainer:          "crbeavers@gmail.com"
+copyright:           "2019 Live Diagonal, Inc."
+
+description: Please see the README on GitHub at <https://github.com/cbeav/cahst#readme>
+
+dependencies:
+- aeson
+- base >= 4.7 && < 5
+- binary
+- bytestring
+- classy-prelude
+- cereal
+- data-default
+- lens
+- lens-aeson
+- network
+- parsers
+- protobuf
+- random
+- scientific
+- text
+- tls
+- unordered-containers
+
+library:
+  source-dirs: src
+
+default-extensions:
+- OverloadedStrings
+- RecordWildCards
+- DeriveGeneric
+- ScopedTypeVariables
+
+executables:
+  cahst:
+    main:                Main.hs
+    source-dirs:         app
+    ghc-options:
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    dependencies:
+    - cahst

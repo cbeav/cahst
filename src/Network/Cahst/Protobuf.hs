@@ -62,7 +62,7 @@ instance Decode AuthResponse
 data AuthErrorType = INTERNAL_ERROR | NO_TLS
   deriving (Enum, Show)
 
-data AuthError = AuthError
+newtype AuthError = AuthError
   { errorType :: Required 1 (Enumeration AuthErrorType)
   } deriving (Generic, Show)
 

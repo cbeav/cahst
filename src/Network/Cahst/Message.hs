@@ -3,9 +3,21 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 module Network.Cahst.Message
-     ( ConnectionMessage(..), HeartbeatMessage(..)
-     , ReceiverMessage(..), ReceiverCommand(..)
-     , launch, stop, getStatus, getAppAvailability, setVolume, setMuted
+     ( HeartbeatMessage(..)
+     , ConnectionMessage(..)
+     , ReceiverCommand(..)
+     , ReceiverMessage(..)
+     , MediaCommand(..)
+     , MediaMessage(..)
+     , getAppAvailability
+     , getMediaStatus
+     , getStatus
+     , launch
+     , pause
+     , play
+     , setVolume
+     , setMuted
+     , stop
      ) where
 
 import           Network.Cahst.Namespace    (Namespaced (..))
@@ -38,7 +50,22 @@ instance ToJSON HeartbeatMessage where
     toJSON Pong = object
         [ "type" .= ("PONG" :: Text) ]
 
-data ReceiverCommand = ReceiverCommand
+newtype MediaCommand = MediaCommand
+    { mediaCommandJson :: [(Text, Aeson.Value)] }
+
+instance ToJSON MediaCommand where
+    toJSON = object . mediaCommandJson
+
+data MediaMessage = MediaMessage MediaCommand RequestId
+
+instance Namespaced MediaMessage where
+    namespace _ = "urn:x-cast:com.google.cast.media"
+
+instance ToJSON MediaMessage where
+    toJSON (MediaMessage (MediaCommand pairs) requestId) =
+        object $ ("requestId" .= requestId) : pairs
+
+newtype ReceiverCommand = ReceiverCommand
     { receiverCommandJson :: [(Text, Aeson.Value)] }
 
 instance ToJSON ReceiverCommand where
@@ -76,9 +103,25 @@ getAppAvailability appIds = ReceiverCommand
 setVolume :: UnitInterval -> ReceiverCommand
 setVolume x = ReceiverCommand
     [ "type" .= ("SET_VOLUME" :: Text)
-    , "volume" .= (object ["level" .= x]) ]
+    , "volume" .= object ["level" .= x] ]
 
 setMuted :: Bool -> ReceiverCommand
 setMuted x = ReceiverCommand
     [ "type" .= ("SET_VOLUME" :: Text)
-    , "volume" .= (object ["muted" .= x]) ]
+    , "volume" .= object ["muted" .= x] ]
+
+getMediaStatus :: MediaCommand
+getMediaStatus = MediaCommand
+    [ "type" .= ("GET_STATUS" :: Text) ]
+
+pause :: Text -> MediaCommand
+pause mediaSessionId = MediaCommand
+  [ "type" .= ("PAUSE" :: Text)
+  , "mediaSessionId" .= mediaSessionId
+  ]
+
+play :: Text -> MediaCommand
+play mediaSessionId = MediaCommand
+  [ "type" .= ("PLAY" :: Text)
+  , "mediaSessionId" .= mediaSessionId
+  ]
